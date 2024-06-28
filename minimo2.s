@@ -21,10 +21,14 @@ _start:
     mov x0, x9
     ldr x1, =buffer
     mov x2, 1024
-    mov x8, 63
+    mov x8, 63       // syscall: read
     svc 0
 
-    // Inicializar variables
+    // Verificar el fin de archivo (EOF)
+    cmp x0, 0
+    beq end_of_file
+
+    // Inicializar variables para encontrar el mínimo
     mov x3, 0        // Índice para recorrer el buffer
     mov x4, 0        // Variable para almacenar el mínimo encontrado
     mov x5, 0x7FFFFFFFFFFFFFFF // Valor inicial alto para comparación
@@ -113,11 +117,11 @@ print:
     mov x8, 57        // syscall: close
     svc 0
 
+end_of_file:
     // Salir del programa
-exit:
     mov x0, 0
     mov x8, 93        // syscall: exit
     svc 0
 
 .data
-numstr: .space 16    // Espacio para la cadena ASCII
+numstr: .space 12    // Espacio para la cadena ASCII
