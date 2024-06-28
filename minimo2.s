@@ -1,15 +1,14 @@
-.global _start
+// Bubble sort implementation in ARM64 v8 assembly language
 
 .data
-input: .asciz "entrada.csv"
-output: .asciz "salida.txt"
-
-.bss
-buffer: .skip 1024
+input: .asciz "input.txt"
+output: .asciz "output.txt"
+arr: .space 40 // assume 10 elements, each 4 bytes
+buffer: .space 40 // buffer for reading input file
 
 .text
 _start:
-    // Abrir el archivo de entrada
+    // Open input file
     mov x0, -100
     ldr x1, =input
     mov x2, 0
@@ -17,121 +16,103 @@ _start:
     svc 0
     mov x9, x0
 
-    // Leer el archivo de entrada
+    // Read input file into buffer
     mov x0, x9
     ldr x1, =buffer
-    mov x2, 1024
-    mov x8, 63       // syscall: read
+    mov x2, 40
+    mov x8, 63
     svc 0
 
-    // Verificar el fin de archivo (EOF)
-    cmp x0, 0
-    beq end_of_file
+    // Close input file
+    mov x0, x9
+    mov x8, 57
+    svc 0
 
-    // Inicializar variables para encontrar el mínimo
-    mov x3, 0        // Índice para recorrer el buffer
-    mov x4, 0        // Variable para almacenar el mínimo encontrado
-    mov x5, 0x7FFFFFFFFFFFFFFF // Valor inicial alto para comparación
+    // Parse input buffer into array
+    mov x0, #0 // index
+    mov x1, #0 // value
+parse_loop:
+    ldrb w2, [buffer, x0]
+    cmp w2, #44 // comma
+    beq parse_next
+    cmp w2, #0 // end of string
+    beq parse_done
+    mul x1, x1, 10
+    add x1, x1, w2 - '0'
+    add x0, x0, 1
+    b parse_loop
 
-    // Encontrar el valor mínimo en el archivo
-find_minimum:
-    ldr x1, =buffer
-    ldrb w6, [x1, x3]
-    cmp w6, 44        // Coma en ASCII
-    beq compare_value
-    cmp w6, 0         // Fin de archivo o final de línea
-    beq print_result
+parse_next:
+    str x1, [arr, x0, lsl #2]
+    mov x1, #0
+    add x0, x0, 1
+    b parse_loop
 
-    sub w6, w6, 48    // Convertir dígito ASCII a valor numérico
-    mov x7, 10        // Base 10 para multiplicar
+parse_done:
+    // Set up bubble sort
+    mov x0, #10 // array size
+    mov x1, #0 // index
+    mov x2, #0 // swap flag
 
-    // Acumular el número
-    mul x4, x4, x7
-    uxtw x6, w6       // Extender el valor de 8 bits a 64 bits
-    add x4, x4, x6    // Sumar el dígito al valor acumulado
+loop:
+    // Load current element and next element
+    ldr x3, [arr, x1, lsl #2]
+    ldr x4, [arr, x1, lsl #2, #4]
 
-    add x3, x3, 1     // Avanzar en el buffer
-    b find_minimum
+    // Compare elements
+    cmp x3, x4
+    bgt swap
 
-compare_value:
-    cmp x4, x5        // Comparar con el valor actual mínimo
-    bge reset_value   // Saltar si no es menor
-    mov x5, x4        // Actualizar el valor mínimo encontrado
+    // No swap needed, increment index
+    add x1, x1, 1
+    cmp x1, x0
+    blt loop
 
-    // Saltar los espacios o comas adicionales
-    ldrb w6, [x1, x3]
-    cmp w6, 0         // Fin de archivo o final de línea
-    bne not_end_of_line
-    b print_result
+    // Check if any swaps were made
+    cmp x2, #0
+    beq done
 
-not_end_of_line:
-    add x3, x3, 1     // Avanzar en el buffer
-    b find_minimum
+    // Reset index and swap flag
+    mov x1, #0
+    mov x2, #0
+    b loop
 
-reset_value:
-    mov x4, 0         // Reiniciar valor acumulado
-    add x3, x3, 1     // Avanzar en el buffer
-    b find_minimum
+swap:
+    // Swap elements
+    str x4, [arr, x1, lsl #2]
+    str x3, [arr, x1, lsl #2, #4]
 
-print_result:
-    // Convertir el valor mínimo a cadena ASCII en numstr
-    ldr x0, =numstr
-    mov x1, x5        // Valor mínimo a convertir
-    mov x2, 10        // Base 10
-    mov x3, 0         // Índice de cadena ASCII
-    mov x11, 0        // Longitud de cadena
+    // Set swap flag
+    mov x2, #1
 
-getsize:
-    udiv x4, x1, x2   // Dividir por 10
-    add x3, x3, 1     // Incrementar longitud de cadena
-    cmp x4, 0         // Comprobar si se ha dividido todo
-    bne getsize
+    // Increment index
+    add x1, x1, 1
+    cmp x1, x0
+    blt loop
 
-    add x0, x0, x3    // Ajustar puntero al final de la cadena
-    mov w6, 10        // Carácter de nueva línea
-    strb w6, [x0]     // Agregar nueva línea al final
-    sub x0, x0, 1     // Retroceder para almacenar el número
-    add x3, x3, 1     // Incrementar longitud de cadena
-    mov x4, x1        // Restaurar valor mínimo
-    mov x5, 0         // Contador de dígitos
-
-getdigits:
-    udiv x6, x4, x2   // Dividir por 10
-    msub x7, x6, x2, x4 // Obtener el dígito
-    add x5, x5, 1     // Incrementar contador de dígitos
-    strb w7, [x0]     // Almacenar dígito convertido
-    sub x0, x0, 1     // Retroceder en la cadena
-    mov x4, x6        // Actualizar valor para dividir
-    cmp x4, 0         // Comprobar si se han convertido todos los dígitos
-    bne getdigits
-    add x0, x0, 1     // Avanzar puntero
-
-// Imprimir el resultado en el archivo de salida
-print:
+done:
+    // Open output file
     mov x0, -100
     ldr x1, =output
-    mov x2, 101       // Modo de creación y escritura
-    mov x3, 0777      // Permisos del archivo
-    mov x8, 56        // syscall: openat
+    mov x2, 101
+    mov x3, 0777
+    mov x8, 56
     svc 0
-    mov x9, x0        // Guardar el descriptor de archivo
+    mov x9, x0
 
-    mov x0, x9        // Descriptor de archivo
-    ldr x1, =numstr   // Dirección de la cadena a imprimir
-    mov x2, x11       // Longitud de la cadena
-    mov x8, 64        // syscall: write
-    svc 0
-
-    // Cerrar el archivo de salida
-    mov x0, x9        // Descriptor de archivo
-    mov x8, 57        // syscall: close
+    // Write sorted array to output file
+    mov x0, x9
+    ldr x1, =arr
+    mov x2, 40
+    mov x8, 64
     svc 0
 
-end_of_file:
-    // Salir del programa
-    mov x0, 0
-    mov x8, 93        // syscall: exit
+    // Close output file
+    mov x0, x9
+    mov x8, 57
     svc 0
 
-.data
-numstr: .space 12    // Espacio para la cadena ASCII
+    // Exit
+    mov x0, #0
+    mov x8, #93
+    svc #0
