@@ -1,3 +1,0 @@
-Suma: 1200
-Conteo: 4
-Promedio: 300.00

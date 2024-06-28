@@ -93,10 +93,6 @@ parse_next:
     b parse_loop                //Seguimos analizando
 
 parse_end:
-    ldr x0, =result_msg         //Recuperamos el mensaje de resultado
-    mov x1, x20                 //Agregamos como parametro el resultado total
-    bl printf
-
     //Contador de numeros encontrados
     ldr x0, =count_msg          //Imprimir el numero de numeros encontrados
     mov x1, x27                 //Colocamos el registro como parametro
