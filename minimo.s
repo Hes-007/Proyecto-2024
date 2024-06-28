@@ -43,17 +43,22 @@ _start:
 
     // Encontrar el valor mínimo en el archivo
 find_minimum:
-    ldr x1, =buffer   
-    ldrb w6, [x1, x3] 
-    cmp w6, 44        
-    beq compare_value 
-    cmp w6, 0         
+    ldr x1, =buffer    
+    ldrb w6, [x1, x3]  
+    cmp w6, 44         
+    beq compare_value  
+    cmp w6, 0          
     beq load_data     
-    sub w6, w6, 48    
-    mul x4, x4, 10    
-    add x4, x4, x6    
-    add x3, x3, 1     
-    b find_minimum    
+
+    sub w6, w6, 48     
+    mov x5, 10         
+
+    // Acumular el número
+    mul x4, x4, x5     
+    add x4, x4, w6     
+
+    add x3, x3, 1      
+    b find_minimum     
 
 compare_value:
     cmp x4, x5        
@@ -124,4 +129,5 @@ exit:
     svc 0             
 
 .data
-numstr: .space 20                    
+numstr: .space 20    
+                
