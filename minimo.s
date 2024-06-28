@@ -48,22 +48,25 @@ find_minimum:
     cmp w6, 44         
     beq compare_value  
     cmp w6, 0          
-    beq load_data     
+    beq load_data      
 
     sub w6, w6, 48     
-    mov x5, 10         
+    mov x7, 10        
 
     // Acumular el número
-    mul x4, x4, x5     
-    add x4, x4, w6     
+    mul x4, x4, x7     
+
+    uxtw x6, w6        
+    add x4, x4, x6     
 
     add x3, x3, 1      
-    b find_minimum     
+    b find_minimum      
 
 compare_value:
     cmp x4, x5        
     bge reset_value  
-    mov x5, x4       
+    mov x5, x4    
+       
 reset_value:
     mov x4, 0         
     add x3, x3, 1     
@@ -130,4 +133,3 @@ exit:
 
 .data
 numstr: .space 20    
-                
