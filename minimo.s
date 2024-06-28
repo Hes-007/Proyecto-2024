@@ -1,8 +1,8 @@
 .global _start
 
 .data
-input: .asciz "entrada.csv"
-output: .asciz "salida.txt"
+input: .asciz "calidad_buena.csv"
+output: .asciz "resultado_calidad_buena.txt"
 
 .bss
 buffer: .skip 1024
@@ -24,22 +24,10 @@ _start:
     mov x8, 63
     svc 0
 
-    // Escribir el contenido del buffer en la salida estándar
-    mov x0, 1
-    ldr x1, =buffer
-    mov x2, 1024
-    mov x8, 64
-    svc 0
-
     // Inicializar variables
     mov x3, 0        // Índice para recorrer el buffer
     mov x4, 0        // Variable para almacenar el mínimo encontrado
     mov x5, 0x7FFFFFFFFFFFFFFF // Valor inicial alto para comparación
-
-    // Cerrar el archivo de entrada
-    mov x0, x9
-    mov x8, 57
-    svc 0
 
     // Encontrar el valor mínimo en el archivo
 find_minimum:
@@ -48,7 +36,7 @@ find_minimum:
     cmp w6, 44        // Coma en ASCII
     beq compare_value
     cmp w6, 0         // Fin de archivo
-    beq load_data
+    beq print_result
 
     sub w6, w6, 48    // Convertir dígito ASCII a valor numérico
     mov x7, 10        // Base 10 para multiplicar
@@ -71,8 +59,8 @@ reset_value:
     add x3, x3, 1     // Avanzar en el buffer
     b find_minimum
 
-load_data:
-    // Convertir el valor mínimo a cadena ASCII
+print_result:
+    // Convertir el valor mínimo a cadena ASCII en numstr
     ldr x0, =numstr
     mov x1, x5        // Valor mínimo a convertir
     mov x2, 10        // Base 10
@@ -116,7 +104,7 @@ print:
 
     mov x0, x9        // Descriptor de archivo
     ldr x1, =numstr   // Dirección de la cadena a imprimir
-    mov x2, x3        // Longitud de la cadena
+    mov x2, x11       // Longitud de la cadena
     mov x8, 64        // syscall: write
     svc 0
 
