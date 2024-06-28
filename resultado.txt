@@ -1,0 +1,7 @@
+Actual: 7
+Actual: 7
+Actual: 7
+Actual: 7
+Suma total: 28
+Cantidad de números: 4
+Promedio: 7.00
