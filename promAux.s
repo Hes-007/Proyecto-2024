@@ -8,7 +8,7 @@ next_msg:    .asciz "Siguiente: %d\n"  // Mensaje para mostrar la suma
 count_msg:     .asciz "Cantidad de números: %d\n"  // Mensaje para mostrar el conteo
 prom_msg:     .asciz "Promedio: %.2f\n" // Mensaje para mostrar el conteo
 error_msg:     .asciz "Error al abrir el archivo\n" // Mensaje de error al abrir el archivo
-
+outFile:   .asciz "output.txt"    // Nombre del archivo de salida
 .section .text
 .global _start
 
