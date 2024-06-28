@@ -68,6 +68,11 @@ not_end_of_line:
     add x3, x3, 1     // Avanzar en el buffer
     b find_minimum
 
+reset_value:
+    mov x4, 0         // Reiniciar valor acumulado
+    add x3, x3, 1     // Avanzar en el buffer
+    b find_minimum
+
 print_result:
     // Convertir el valor mínimo a cadena ASCII en numstr
     ldr x0, =numstr
