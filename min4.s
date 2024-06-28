@@ -14,6 +14,8 @@ error_msg:     .asciz "Error al abrir el archivo\n" // Mensaje de error al abrir
 .extern fread
 .extern fclose
 .extern printf
+.extern sprintf
+.extern fwrite
 
 _start:
     // Abrir el archivo de entrada
@@ -31,7 +33,7 @@ _start:
     bl fread               // Llamar a la función fread
 
     // Añadir terminación nula al buffer
-    add x0, x0, x2         // Dirección de terminación
+    add x0, x0, x2         // Dirección de terminación (x1 es la base del buffer, x2 es el tamaño leído)
     mov w1, 0              // Carácter nulo
     strb w1, [x0]          // Escribir carácter nulo
 
@@ -78,14 +80,14 @@ print_result:
     mov x19, x0             // Guardar el puntero al archivo de salida en x19
 
     // Convertir el mínimo a cadena ASCII y escribirlo en el archivo de salida
-    // Usar sprintf o similar en lugar de itoa si está disponible
-    mov x0, x21             // Cargar el mínimo en x0
-    mov x1, 10              // Tamaño suficiente para el entero
-    bl sprintf              // Llamar a sprintf (asegúrate de que sprintf esté disponible)
-    
+    // Usar sprintf en lugar de itoa
+    ldr x0, =buffer         // Dirección del buffer para sprintf
+    mov x1, x21             // Valor mínimo a convertir
+    bl sprintf              // Llamar a sprintf
+
     // Escribir la cadena en el archivo de salida
-    ldr x0, =buffer         // Cargar la dirección del buffer con la cadena convertida
-    mov x1, x19             // Cargar el puntero al archivo de salida en x1
+    mov x0, x19             // Cargar el puntero al archivo de salida en x0
+    ldr x1, =buffer         // Dirección del buffer con la cadena convertida
     mov x2, 12              // Tamaño de la cadena (suficiente para el mínimo)
     bl fwrite               // Llamar a la función fwrite para escribir en el archivo
 
@@ -109,10 +111,10 @@ file_error_out:
 
 exit_program:
     // Salir del programa en caso de error
-    mov x8, 93                  // syscall: exit
-    svc 0                       // Llamar al sistema para salir
+    mov x8, 93              // syscall: exit
+    svc 0                   // Llamar al sistema para salir
 
 exit_program_out:
     // Salir del programa en caso de error al escribir
-    mov x8, 93                  // syscall: exit
-    svc 0                       // Llamar al sistema para salir
+    mov x8, 93              // syscall: exit
+    svc 0                   // Llamar al sistema para salir
