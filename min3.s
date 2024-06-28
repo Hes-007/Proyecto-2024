@@ -49,9 +49,8 @@ find_minimum:
     beq next_char           // Si es una coma, ir al siguiente carácter
     
     sub w2, w2, 48          // Convertir el carácter ASCII a número
-    mov x4, 10              // Base 10 para la conversión
-    mul x21, x21, x4        // Multiplicar el mínimo actual por 10
-    add x21, x21, w2        // Sumar el dígito al mínimo actual
+    uxtw x2, w2             // Extender w2 a un registro de 64 bits x2
+    add x21, x21, x2        // Sumar x2 a x21
 
 next_char:
     add x3, x3, 1           // Avanzar en el buffer
@@ -74,8 +73,8 @@ print_result:
 
     // Convertir el mínimo a cadena ASCII y escribirlo en el archivo de salida
     ldr x0, =buffer         // Cargar la dirección del buffer con el mínimo convertido
-    mov x1, x21             // Cargar el mínimo encontrado en x1
-    mov x2, 12              // Tamaño máximo de la cadena
+    ldr x1, =output_file    // Cargar la dirección del nombre del archivo de salida
+    mov x2, 12              // Tamaño de la cadena
     bl itoa                 // Llamar a la función itoa para convertir el mínimo a cadena ASCII
 
     // Escribir la cadena en el archivo de salida
@@ -113,43 +112,28 @@ itoa:
     mov x2, 0                   // Inicializar contador de caracteres
 
 itoa_loop:
-    udiv x1, x1, 10             // Dividir el número por 10
-    msub x3, x1, 10, x1         // Calcular el dígito
-    add x3, x3, #'0'            // Convertir dígito a ASCII
-    strb w3, [x0, x2]           // Almacenar dígito en el buffer
-    add x2, x2, 1               // Incrementar contador de caracteres
-    cmp x1, 0                    // Comprobar si se ha dividido todo
-    b.ne itoa_loop               // Repetir el ciclo si no se ha dividido todo
+    udiv x1, x1, x2             // Dividir el número por 10
+    msub x3, x1, x2, x1         // Calcular el dígito
+    add x2, x2, 1               // Incrementar el contador de caracteres
+    strb w3, [x0, x2]           // Almacenar el dígito convertido
+    cmp x1, 0                   // Comprobar si se ha dividido todo
+    b.ne itoa_loop              // Repetir el ciclo si no se ha dividido todo
 
-    // Terminar la cadena con NULL
-    mov w3, 0
-    strb w3, [x0, x2]
+    // Agregar el carácter de nueva línea al final
+    mov w3, 10                  // Carácter de nueva línea
+    strb w3, [x0, x2]           // Agregar nueva línea al final
+    add x2, x2, 1               // Incrementar el contador de caracteres
 
-    // Invertir la cadena en el buffer
-    mov x1, 0                   // Inicializar índice izquierdo
-    sub x2, x2, 1               // Inicializar índice derecho
-itoa_reverse:
-    cmp x1, x2
-    b.ge itoa_end_reverse
-    ldrb w3, [x0, x1]
-    ldrb w4, [x0, x2]
-    strb w4, [x0, x1]
-    strb w3, [x0, x2]
-    add x1, x1, 1
-    sub x2, x2, 1
-    b itoa_reverse
-
-itoa_end_reverse:
     // Restaurar registros de retorno
     ldp x29, x30, [sp], #16     // Restaurar x29 y x30 desde la pila
     ret                         // Retornar de la función
 
 exit_program:
-    // Salir del programa
-    mov x8, 93              // syscall: exit
-    svc 0                   // Llamar al sistema para salir
+    // Salir del programa en caso de error
+    mov x8, 93                  // syscall: exit
+    svc 0                       // Llamar al sistema para salir
 
 exit_program_out:
-    // Salir del programa
-    mov x8, 93              // syscall: exit
-    svc 0                   // Llamar al sistema para salir
+    // Salir del programa en caso de error al escribir
+    mov x8, 93                  // syscall: exit
+    svc 0                       // Llamar al sistema para salir
