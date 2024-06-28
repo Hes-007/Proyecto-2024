@@ -30,7 +30,7 @@ _start:
 
     // Cerrar el archivo de entrada
     mov x0, x19            // Cargar el puntero al archivo a cerrar
-    bl fclose              
+    bl fclose
 
     // Inicializar variables para encontrar el mínimo
     mov x20, 0x7FFFFFFFFFFFFFFF  // Inicializar con un valor alto para comparación (MAX_INT64)
@@ -50,8 +50,9 @@ find_minimum:
     
     sub w2, w2, 48          // Convertir el carácter ASCII a número
     uxtw x2, w2             // Extender w2 a un registro de 64 bits x2
-    add x21, x21, x2        // Sumar x2 a x21
-
+    cmp x21, x2             // Comparar el mínimo actual con el número leído
+    csel x21, x21, x2, lt   // Actualizar x21 si el número leído es menor
+    
 next_char:
     add x3, x3, 1           // Avanzar en el buffer
     b find_minimum          // Continuar buscando el mínimo
@@ -64,7 +65,7 @@ print_result:
 
     // Abrir el archivo de salida
     ldr x0, =output_file    // Cargar la dirección del nombre del archivo de salida
-    ldr x1, =mode           // Cargar el modo de apertura del archivo (lectura)
+    ldr x1, =mode           // Cargar el modo de apertura del archivo (escritura)
     mov x2, 101             // Modo de creación y escritura
     mov x3, 0777            // Permisos del archivo
     bl fopen                // Llamar a la función fopen para abrir el archivo de salida
@@ -74,13 +75,13 @@ print_result:
     // Convertir el mínimo a cadena ASCII y escribirlo en el archivo de salida
     ldr x0, =buffer         // Cargar la dirección del buffer con el mínimo convertido
     ldr x1, =output_file    // Cargar la dirección del nombre del archivo de salida
-    mov x2, 12              // Tamaño de la cadena
+    mov x2, 12              // Tamaño de la cadena (suficiente para el mínimo)
     bl itoa                 // Llamar a la función itoa para convertir el mínimo a cadena ASCII
 
     // Escribir la cadena en el archivo de salida
     ldr x0, =buffer         // Cargar la dirección del buffer con la cadena convertida
     ldr x1, =output_file    // Cargar la dirección del nombre del archivo de salida
-    mov x2, 12              // Tamaño de la cadena
+    mov x2, 12              // Tamaño de la cadena (suficiente para el mínimo)
     mov x3, x19             // Cargar el puntero al archivo de salida en x3
     bl fwrite               // Llamar a la función fwrite para escribir en el archivo
 
@@ -100,7 +101,7 @@ file_error:
 file_error_out:
     ldr x0, =error_msg      // Cargar la dirección del mensaje de error de archivo
     bl printf               // Llamar a printf para imprimir el mensaje de error
-    b exit_program_out      // Saltar a la salida del programa en caso de error
+    b exit_program_out      // Saltar a la salida del programa en caso de error al escribir
 
 // Función itoa (convertir número a cadena)
 itoa:
@@ -112,8 +113,8 @@ itoa:
     mov x2, 0                   // Inicializar contador de caracteres
 
 itoa_loop:
-    udiv x1, x1, x2             // Dividir el número por 10
-    msub x3, x1, x2, x1         // Calcular el dígito
+    udiv x1, x1, 10             // Dividir el número por 10
+    msub x3, x1, 10, x1         // Calcular el dígito
     add x2, x2, 1               // Incrementar el contador de caracteres
     strb w3, [x0, x2]           // Almacenar el dígito convertido
     cmp x1, 0                   // Comprobar si se ha dividido todo
