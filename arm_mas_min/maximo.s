@@ -1,11 +1,6 @@
-/*
-    Programa que lee un archivo de texto, determina el menor de los numeros y escribe el numero minimo en otro archivo
-    input.txt:
-    1,2,31,12,29,58,31
-*/
 .section .data
 input_file:     .asciz "input.txt"    // Nombre del archivo de entrada
-output_file:    .asciz "output.txt"   // Nombre del archivo de salida
+output_file:    .asciz "output_max.txt"   // Nombre del archivo de salida
 buffer:         .space 256            // Espacio reservado para el buffer de 256 bytes
 num_buffer:     .space 16             // Espacio reservado para el buffer del número de 16 bytes
 format_sum:     .asciz "%d\n"         // Formato de salida para la suma
@@ -33,8 +28,8 @@ _start:
     cbz x0, error               // Si x0 es cero, saltar a error
     mov x19, x0                 // Guardar el número de bytes leídos en x19
 
-    // Calcular la suma de los números en el CSV
-    mov x20, #100               // Inicializar el min en 100 (asumiendo que los números son menores a 100)
+    // Calcular el máximo de los números en el CSV
+    mov x20, #0                 // Inicializar el máximo en 0
     ldr x1, =buffer             // Dirección del buffer en x1
     ldr x3, =num_buffer         // Dirección del buffer del número en x3
     mov x4, x3                  // Puntero actual para escribir el número
@@ -57,12 +52,12 @@ parse_number:
     ldr x0, =num_buffer         // Dirección del buffer del número en x0
     bl atoi                     // Convertir cadena a número
 
-    // Evitar actualizar el mínimo si el número es 0
+    // Evitar actualizar el máximo si el número es 0
     cbz x0, reset_buffer        // Si el número es 0, saltar a reset_buffer
 
-    // Comparar el número actual con el mínimo
+    // Comparar el número actual con el máximo
     cmp x0, x20                 // Rn - Operand 2. Compare and update flags
-    csel x20, x0, x20, lt       // Si x0 < x20, actualizar x20, si no, mantener x20
+    csel x20, x0, x20, gt       // Si x0 > x20, actualizar x20, si no, mantener x20
 
 reset_buffer:
     // Restablecer el puntero del buffer del número
@@ -72,8 +67,8 @@ reset_buffer:
     b parse_loop                // Continuar el bucle
 
 parse_end:
-    // Convertir la suma a cadena
-    mov x0, x20                 // Pasa la suma a x0
+    // Convertir el máximo a cadena
+    mov x0, x20                 // Pasa el máximo a x0
     ldr x1, =buffer             // Dirección del buffer en x1
     bl itoa                     // Llama a la función itoa
 
@@ -87,7 +82,7 @@ parse_end:
     cbz x0, error               // Si x0 es cero, saltar a error
     mov x10, x0                 // Guardar el descriptor de archivo en x10
 
-    // Escribir la suma en el archivo
+    // Escribir el máximo en el archivo
     mov x0, x10                 // Descriptor de archivo en x0
     ldr x1, =buffer             // Dirección del buffer en x1
     bl write_string             // Llama a la función write_string

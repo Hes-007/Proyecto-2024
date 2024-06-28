@@ -1,6 +1,6 @@
 .section .data
 input_file:     .asciz "input.txt"    // Nombre del archivo de entrada
-output_file:    .asciz "output.txt"   // Nombre del archivo de salida
+output_file:    .asciz "output_min.txt"   // Nombre del archivo de salida
 buffer:         .space 256            // Espacio reservado para el buffer de 256 bytes
 num_buffer:     .space 16             // Espacio reservado para el buffer del número de 16 bytes
 newline:        .asciz "\n"           // Cadena de nueva línea
