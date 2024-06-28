@@ -39,7 +39,7 @@ find_minimum:
     ldrb w6, [x1, x3]
     cmp w6, 44        // Coma en ASCII
     beq compare_value
-    cmp w6, 0         // Fin de archivo
+    cmp w6, 0         // Fin de archivo o final de línea
     beq print_result
 
     sub w6, w6, 48    // Convertir dígito ASCII a valor numérico
@@ -58,8 +58,13 @@ compare_value:
     bge reset_value   // Saltar si no es menor
     mov x5, x4        // Actualizar el valor mínimo encontrado
 
-reset_value:
-    mov x4, 0         // Reiniciar valor acumulado
+    // Saltar los espacios o comas adicionales
+    ldrb w6, [x1, x3]
+    cmp w6, 0         // Fin de archivo o final de línea
+    bne not_end_of_line
+    b print_result
+
+not_end_of_line:
     add x3, x3, 1     // Avanzar en el buffer
     b find_minimum
 
