@@ -49,9 +49,9 @@ find_minimum:
     beq next_char           // Si es una coma, ir al siguiente carácter
     
     sub w2, w2, 48          // Convertir el carácter ASCII a número
-    uxtw x2, w2             // Extender w2 a un registro de 64 bits x2
-    cmp x21, x2             // Comparar el mínimo actual con el número leído
-    csel x21, x21, x2, lt   // Actualizar x21 si el número leído es menor
+    uxtw x4, w2             // Extender w2 a un registro de 64 bits x4
+    cmp x21, x4             // Comparar el mínimo actual con el número leído
+    csel x21, x21, x4, lt   // Actualizar x21 si el número leído es menor
     
 next_char:
     add x3, x3, 1           // Avanzar en el buffer
@@ -113,8 +113,8 @@ itoa:
     mov x2, 0                   // Inicializar contador de caracteres
 
 itoa_loop:
-    udiv x1, x1, 10             // Dividir el número por 10
-    msub x3, x1, 10, x1         // Calcular el dígito
+    udiv x1, x1, x8             // Dividir el número por 10
+    msub x3, x1, x8, x1         // Calcular el dígito
     add x2, x2, 1               // Incrementar el contador de caracteres
     strb w3, [x0, x2]           // Almacenar el dígito convertido
     cmp x1, 0                   // Comprobar si se ha dividido todo
