@@ -8,8 +8,8 @@ buffer:  .space 1024
 list:    .skip 10000
 
 .data
-index:   .asciz "index.txt"
-output:     .asciz "output_medmod.txt"
+filename:   .asciz "data.txt"
+output:     .asciz "output.txt"
 error_file: .asciz "Error al abrir el archivo\n"
 
 .text
@@ -22,12 +22,14 @@ close:
     svc 0               // syscall
 
 
+
 // Función read_points: lee los puntos del archivo 
+
 
 read_information:
     // open file
     mov x0, -100        // open
-    ldr x1, =index      // index and address
+    ldr x1, =filename   // filename address
     mov x2, 0           // O_RDONLY 
     mov x8, 56          // openat
     svc #0              // syscall
@@ -164,7 +166,6 @@ add_list:
 
 // Función sort: ordena los puntos del archivo 
 
-
 sort:
     mov x2, 0
     mov x3, 0
@@ -204,7 +205,6 @@ end_sort:
 
 
 // Función mode: calcula la moda de los puntos 
-
 
 calculate_mode:
     mov x2, 0 // mode
@@ -296,7 +296,7 @@ contar_digitos:
     ret   
 
 
-// Función itoa: convierte un entero a string 
+// Función itoa: convierte un entero a string
 
 
 itoa:
@@ -313,7 +313,7 @@ itoa:
 
 save_output:
     mov x0, -100      // Descriptor de archivo (-100 indica que se abrirá un nuevo archivo)
-    ldr x1, =output   // Carga la dirección de 'filename' en x1
+    ldr x1, =output // Carga la dirección de 'filename' en x1
     mov x2, 101       // Flags para abrir el archivo (O_WRONLY | O_CREAT)
     mov x3, 0777      // Permisos del archivo
     mov x8, 56        // syscall number para open
@@ -322,7 +322,7 @@ save_output:
     mov x9, x0        // Guarda el descriptor de archivo en x9
 
     mov x0, x9        // Carga el descriptor de archivo en x0
-    ldr x1, =cadena   // Carga la dirección de 'content' en x1
+    ldr x1, =cadena  // Carga la dirección de 'content' en x1
     mov x2, x18       // Carga el número de bytes leídos en x2
     mov x8, 64        // syscall number para write
     svc 0             // Llamada al sistema para escribir en el archivo
@@ -332,6 +332,6 @@ save_output:
     svc 0             // Llamada al sistema para cerrar el archivo
 
     mov x8, 93        // Número de syscall para exit.
-    mov x0, 0         // Código de salida.
+    mov x0, 0        // Código de salida.
     svc 0             // Invoca la syscall.
     ret
