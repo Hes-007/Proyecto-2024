@@ -8,7 +8,7 @@ buffer:  .space 1024
 list:    .skip 10000
 
 .data
-filename:   .asciz "data.txt"
+filename:   .asciz "input.txt"
 output:     .asciz "output.txt"
 error_file: .asciz "Error al abrir el archivo\n"
 
