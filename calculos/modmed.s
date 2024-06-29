@@ -8,8 +8,8 @@ buffer:  .space 1024
 list:    .skip 10000
 
 .data
-idex:   .asciz "index.txt"
-output:     .asciz "output_med&mod.txt"
+index:   .asciz "index.txt"
+output:     .asciz "output_medmod.txt"
 error_file: .asciz "Error al abrir el archivo\n"
 
 .text
